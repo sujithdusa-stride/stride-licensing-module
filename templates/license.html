@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate License</title>
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="stylesheet" href="/static/css/styles.css"/>
+</head>
+<body>
+    <div class="container">
+        <div style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
+            <h2>Generate License</h2>
+            <div style="margin-bottom: 20px;">
+                <form onsubmit="generateLicense(event)">
+                    <label for="expiry">Expiry date:</label>
+                    <input type="date" id="date" required style="margin-bottom: 10px;">
+                    <button>Generate License</button>
+                </form>
+            </div>
+             <div style="margin-bottom: 20px;" id="license-key-Container">
+                <label for="licenseKey">License Key:</label>
+                <input type="text" id="licenseKey" readonly style="margin-bottom: 10px;">
+                <button onclick="copyToClipboard()" id="copyButton">Copy</button>
+            </div>
+            
+            <a href="/" style="margin-top: 10px;">Sign Out</a>
+        </div>
+    </div>
+    
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+                .then((reg) => {
+                    console.log('Service worker registered.', reg);
+                })
+                .catch((error) => {
+                    console.log('Service worker registration failed:', error);
+                });
+        }
+        function generateLicense(event) {
+            event.preventDefault();
+            const date = document.getElementById('date').value;
+            fetch('/generate_license', {
+                method: 'POST',
+                body: new URLSearchParams({ 'date': date }),
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+            }).then(res => res.json()).then(data => {
+                let container = document.getElementById('license-key-Container')
+                let elem = document.getElementById('licenseKey')
+                container.style.display = "block";
+                elem.value = data.license;
+            });
+        }
+        function copyToClipboard() {
+            const licenseKeyElem = document.getElementById('licenseKey');
+            licenseKeyElem.select(); 
+            document.execCommand('copy');
+            alert('License key copied to clipboard!');
+        }
+    </script>
+</body>
+</html>
